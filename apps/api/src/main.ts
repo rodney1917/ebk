@@ -52,8 +52,8 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, doc);
   }
 
-  await app.listen(cfg.PORT);
-  Logger.log(`EBK API listening on :${cfg.PORT} (${cfg.NODE_ENV}${cfg.SANDBOX_PROVIDERS_ENABLED ? ', SANDBOX providers enabled' : ''})`, 'Bootstrap');
+  await app.listen(cfg.PORT, cfg.HOST);
+  Logger.log(`EBK API listening on ${cfg.HOST}:${cfg.PORT} (${cfg.NODE_ENV}${cfg.SANDBOX_PROVIDERS_ENABLED ? ', SANDBOX providers enabled' : ''})`, 'Bootstrap');
 }
 
 bootstrap().catch((e) => {

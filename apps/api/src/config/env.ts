@@ -8,6 +8,8 @@ const EnvSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'staging', 'production']).default('development'),
     PORT: z.coerce.number().int().default(3000),
+    /** Bind address. 0.0.0.0 inside Docker; 127.0.0.1 when running directly on a server. */
+    HOST: z.string().default('0.0.0.0'),
     DATABASE_URL: z.string().url(),
     APP_ORIGIN: z.string().url().default('http://localhost:5173'),
     API_PUBLIC_URL: z.string().url().default('http://localhost:3000'),

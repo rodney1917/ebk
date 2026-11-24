@@ -38,6 +38,7 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-ebk}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-ebk}?schema=public
+      HOST: 0.0.0.0
     depends_on:
       db: { condition: service_healthy }
       migrate: { condition: service_completed_successfully }
