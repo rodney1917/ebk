@@ -1,0 +1,70 @@
+# EBK — local / VPS stack.  docker compose up -d --build
+# Production: use docker-compose.prod.yml overrides (TLS, no exposed DB port) — see DEPLOYMENT.md.
+name: ebk
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ebk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-ebk}
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432" # loopback only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ebk} -d ${POSTGRES_DB:-ebk}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    build: { context: ., dockerfile: apps/api/Dockerfile, target: build }
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ebk}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-ebk}?schema=public
+    working_dir: /repo/apps/api
+    command: sh -c "npx prisma migrate deploy && npx tsx prisma/seed.ts"
+    depends_on: { db: { condition: service_healthy } }
+    restart: "no"
+
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ebk}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-ebk}?schema=public
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    expose: ["3000"]
+
+  web:
+    build: { context: ., dockerfile: apps/web/Dockerfile, args: { VITE_API_BASE_URL: /api } }
+    restart: unless-stopped
+    depends_on: [api]
+    ports:
+      - "80:80"
+
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER:-ebk}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-ebk}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    volumes:
+      - ./infra/backup/backup.sh:/backup.sh:ro
+      - backups:/backups
+    entrypoint: ["/bin/sh", "-c", "while true; do /bin/sh /backup.sh; sleep 86400; done"]
+    depends_on: { db: { condition: service_healthy } }
+
+volumes:
+  pgdata:
+  backups:

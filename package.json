@@ -1,0 +1,23 @@
+{
+  "name": "ebk",
+  "private": true,
+  "description": "EBK (Empower Bank Konnect) — African fintech platform. Empower. Bank. Connect.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "npm run build -w @ebk/core && npm run build -w @ebk/api && npm run build -w @ebk/web",
+    "test": "npm run test -w @ebk/core && npm run test -w @ebk/api",
+    "test:core": "npm run test -w @ebk/core",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dev:api": "npm run start:dev -w @ebk/api",
+    "dev:web": "npm run dev -w @ebk/web",
+    "db:migrate": "npm run prisma:migrate -w @ebk/api",
+    "db:seed": "npm run prisma:seed -w @ebk/api",
+    "preview:web": "node tools/preview/build-preview.mjs"
+  }
+}
