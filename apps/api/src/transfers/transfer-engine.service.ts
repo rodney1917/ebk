@@ -233,7 +233,7 @@ export class TransferEngine {
       if (fresh.status === 'SUCCEEDED' || fresh.status === 'FAILED') return; // already final — duplicate delivery
 
       if (ev.status === 'FAILED') {
-        await tx.paymentAttempt.update({ where: { id: attempt.id }, data: { status: 'FAILED', failureCode: ev.failureCode, providerReference: ev.providerReference ?? fresh.providerReference } });
+        await tx.paymentAttempt.update({ where: { id: attempt.id }, data: { status: 'FAILED', failureCode: ev.failureCode, providerReference: fresh.providerReference ?? ev.providerReference } });
         if (t.status === 'PENDING_PAYMENT' || t.status === 'PAYMENT_PROCESSING') {
           await this.transition(tx, t.id, 'FAILED', provider, `payment failed: ${ev.failureCode ?? 'declined'}`);
         }
@@ -252,7 +252,7 @@ export class TransferEngine {
         return;
       }
 
-      await tx.paymentAttempt.update({ where: { id: attempt.id }, data: { status: 'SUCCEEDED', providerReference: ev.providerReference ?? fresh.providerReference } });
+      await tx.paymentAttempt.update({ where: { id: attempt.id }, data: { status: 'SUCCEEDED', providerReference: fresh.providerReference ?? ev.providerReference } });
       await this.transition(tx, t.id, 'PAYMENT_RECEIVED', provider, 'payment confirmed by provider');
       await this.ledger.post(tx, paymentReceivedJournal(this.amounts(t, attempt.provider.code, 'UNASSIGNED')), {
         transferId: t.id,

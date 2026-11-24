@@ -67,7 +67,7 @@ describe('EBK transfer flow (e2e, sandbox)', () => {
     expect(c.body.sandbox).toBe(true);
 
     const attempt = await prisma.paymentAttempt.findFirstOrThrow({ where: { transferId: t1.body.id } });
-    const body = JSON.stringify({ id: `evt_${randomUUID()}`, type: 'collection.succeeded', data: { idempotencyKey: attempt.idempotencyKey, providerReference: 'p1', amountMinor: '25349', currency: 'GBP' } });
+    const body = JSON.stringify({ id: `evt_${randomUUID()}`, type: 'collection.succeeded', data: { idempotencyKey: attempt.idempotencyKey, providerReference: `p_${randomUUID()}`, amountMinor: '25349', currency: 'GBP' } });
     const sig = signSandboxPayload(process.env.SANDBOX_WEBHOOK_SECRET!, body);
     await request(app.getHttpServer()).post('/api/webhooks/SANDBOX_COLLECT').set('Content-Type', 'application/json').set('X-EBK-Sandbox-Signature', sig).send(body).expect(200);
     const dup = await request(app.getHttpServer()).post('/api/webhooks/SANDBOX_COLLECT').set('Content-Type', 'application/json').set('X-EBK-Sandbox-Signature', sig).send(body).expect(200);
