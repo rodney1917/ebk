@@ -3,6 +3,27 @@
   "rootDir": "../..",
   "testEnvironment": "node",
   "testRegex": "test/e2e/.*\\.e2e-spec\\.ts$",
-  "transform": { "^.+\\.ts$": ["ts-jest", { "tsconfig": { "experimentalDecorators": true, "emitDecoratorMetadata": true, "esModuleInterop": true } }] },
+  "moduleNameMapper": {
+    "^@ebk/core$": "<rootDir>/../../packages/core/src/index.ts",
+    "^(\\.{1,2}/.*)\\.js$": "$1"
+  },
+  "transform": {
+    "^.+\\.ts$": [
+      "ts-jest",
+      {
+        "diagnostics": false,
+        "tsconfig": {
+          "module": "commonjs",
+          "moduleResolution": "node",
+          "target": "ES2022",
+          "experimentalDecorators": true,
+          "emitDecoratorMetadata": true,
+          "esModuleInterop": true,
+          "isolatedModules": true,
+          "skipLibCheck": true
+        }
+      }
+    ]
+  },
   "testTimeout": 30000
 }
