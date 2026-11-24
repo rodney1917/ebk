@@ -23,7 +23,7 @@ const ListQuerySchema = z.object({
 });
 
 export function transferDto(t: Transfer, history: TransferStatusHistory[] = []) {
-  const snap = t.beneficiarySnapshot as { fullName: string; msisdn?: string; dialCode?: string; mobileOperatorName?: string; countryCode: string };
+  const snap = t.beneficiarySnapshot as unknown as { fullName: string; msisdn?: string; dialCode?: string; mobileOperatorName?: string; countryCode: string };
   const status = t.status as TransferStatus;
   return {
     id: t.id,

@@ -19,7 +19,7 @@ export function Field({ label, hint, error, children, htmlFor }: { label: ReactN
   );
 }
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
   label: ReactNode;
   hint?: ReactNode;
   error?: string;

@@ -34,7 +34,7 @@ export class IdempotencyService {
       if (existing.responseStatus == null) {
         throw new ConflictException({ code: 'REQUEST_IN_PROGRESS', message: 'The original request is still being processed' });
       }
-      return { status: existing.responseStatus, body: existing.responseBody as T, replayed: true };
+      return { status: existing.responseStatus, body: existing.responseBody as unknown as T, replayed: true };
     }
 
     try {

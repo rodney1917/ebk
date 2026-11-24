@@ -51,7 +51,7 @@ export class ProviderRegistry {
             subscriptionKey: cfg.MTN_MOMO_DISBURSEMENT_SUBSCRIPTION_KEY,
             apiUser: cfg.MTN_MOMO_DISBURSEMENT_API_USER,
             apiKey: cfg.MTN_MOMO_DISBURSEMENT_API_KEY,
-            sandboxCurrencyOverride: (row.config as { sandboxCurrencyOverride?: string })?.sandboxCurrencyOverride,
+            sandboxCurrencyOverride: (row.config as unknown as { sandboxCurrencyOverride?: string } | null)?.sandboxCurrencyOverride,
           },
           sha256,
         );

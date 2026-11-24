@@ -18,7 +18,7 @@ export function Alert({ tone = 'info', title, children, action, className }: { t
       <span className="mt-0.5 shrink-0">{s.icon}</span>
       <div className="flex-1 text-sm">
         {title && <p className="font-semibold">{title}</p>}
-        {children && <div className={cx(title && 'mt-0.5', 'text-ink/80')}>{children}</div>}
+        {children && <div className={cx(title ? 'mt-0.5' : false, 'text-ink/80')}>{children}</div>}
       </div>
       {action && <div className="shrink-0 self-center">{action}</div>}
     </div>
