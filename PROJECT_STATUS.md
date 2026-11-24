@@ -2,6 +2,8 @@
 
 _Last updated: 24 Nov 2026 · Milestone: Phase 1 foundation + Phase 2 customer app (first pass) + Phase 4 engine core_
 
+**Update (24 Nov, VPS verification):** `npm install` + `npm run typecheck` clean across core, API and web; migrations and seed applied to Postgres 16 in Docker; 29 core + 20 API unit tests pass; the Jest/Supertest e2e suite (register/login → beneficiary → locked quote → idempotent transfer → signed sandbox payment webhook → duplicate rejected → payout → COMPLETED with 7 ledger entries) passes, including on repeat runs. Two defects found and fixed during verification: an auth type error and a webhook overwriting an existing provider reference.
+
 ## Build environment note
 
 The initial build ran in a workspace with **no package-registry access**. React, Tailwind v4, Zod,
@@ -29,7 +31,9 @@ Legend: ✅ implemented and tested · 🟡 implemented, not yet executed · ⏳ 
 | ✅ Boot-time config validation (sandbox forbidden in prod, prod can't target MTN sandbox, weak secrets rejected) | unit tests |
 | ✅ Customer UI: design system, app shell, Home dashboard, Send (amount → recipient → review/lock → pay), Recipients (add/edit/delete + validation), Transactions (filters), Transfer detail (live timeline), Receipt (print/share), Login/Register, Airtime placeholder, Help | Demo preview built and clicked through in Chromium at 1440px and 390px; no console errors; no horizontal overflow on mobile |
 
-## Implemented, not yet executed (🟡)
+## Implemented, partly verified (🟡)
+
+_Verified on the VPS: typecheck, migrations, seed, e2e API flow. Still unverified: running API + web app together in a browser, Docker images, Nginx, backups._
 
 - NestJS API: auth (register/login/refresh rotation with reuse detection/logout/me), reference data,
   quotes, beneficiaries, transfer engine, ledger posting, provider registry, webhooks, sandbox checkout,
