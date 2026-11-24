@@ -150,7 +150,7 @@ export class AuthService {
     await this.audit.record({ ...actor, type: 'CUSTOMER', id: s.userId }, 'auth.logout', { type: 'session', id: s.familyId });
   }
 
-  private async issueTokens(userId: string, email: string, actor: Actor, familyId = randomUUID(), rotatedFromId?: string): Promise<IssuedTokens> {
+  private async issueTokens(userId: string, email: string, actor: Actor, familyId: string = randomUUID(), rotatedFromId?: string): Promise<IssuedTokens> {
     const cfg = env();
     const refreshToken = randomToken(48);
     const refreshExpiresAt = new Date(Date.now() + cfg.REFRESH_TOKEN_TTL_DAYS * 86400_000);
