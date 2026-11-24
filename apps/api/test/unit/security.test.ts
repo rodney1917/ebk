@@ -180,6 +180,12 @@ describe('environment safety', () => {
   test('production cannot target the MTN sandbox', () => {
     assert.throws(() => loadEnv({ ...baseEnv, NODE_ENV: 'production' }), /MTN sandbox/);
   });
+  test('Flutterwave: test keys refused in production; key requires webhook hash; empty values ignored', () => {
+    const prod = { ...baseEnv, NODE_ENV: 'production', MTN_MOMO_TARGET_ENVIRONMENT: 'mtnzambia' };
+    assert.throws(() => loadEnv({ ...prod, FLW_SECRET_KEY: 'FLWSECK_TEST-x', FLW_WEBHOOK_SECRET_HASH: 'x'.repeat(20) }), /Flutterwave test key/);
+    assert.throws(() => loadEnv({ ...baseEnv, FLW_SECRET_KEY: 'FLWSECK_TEST-x' }), /FLW_WEBHOOK_SECRET_HASH/);
+    assert.equal(loadEnv({ ...baseEnv, FLW_SECRET_KEY: '', FLW_WEBHOOK_SECRET_HASH: '' }).FLW_SECRET_KEY, undefined);
+  });
   test('weak secrets rejected', () => {
     assert.throws(() => loadEnv({ ...baseEnv, JWT_ACCESS_SECRET: 'short' }), /JWT_ACCESS_SECRET/);
     assert.throws(() => loadEnv({ ...baseEnv, FIELD_ENCRYPTION_KEY: 'abc' }), /FIELD_ENCRYPTION_KEY/);

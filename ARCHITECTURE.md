@@ -92,8 +92,16 @@ production. Card data is only ever entered on a partner's hosted page.
 | `sandbox-collection` | Working. Hosted "checkout" page + HMAC-signed webhooks through the real pipeline. |
 | `sandbox-payout` | Working. Deterministic outcomes by recipient number. |
 | `mtn-momo-disbursement` | Written to MTN Open API shape; unit-tested with mocked HTTP; **not yet run against MTN sandbox**. |
-| `airtel-money-disbursement` | Stub — reports not configured until Airtel onboarding. |
+| `flutterwave-transfers` | Flutterwave v3 Transfers → MTN / Airtel / Zamtel wallets in Zambia. Unit-tested with mocked HTTP; deterministic references (no double payout on retry), duplicate-reference lookup, 5xx/429 → poll, `verif-hash` webhook check then status re-query. Seeded **inactive**; needs FLW_* keys. |
+| `airtel-money-disbursement` | Stub — superseded by Flutterwave for Airtel unless a direct Airtel contract is signed. |
 | UK collection (cards/open banking) | Not started — partner to be selected. |
+
+## Network payout limits
+
+Each `mobile_operators` row has `max_payout_amount` (destination currency). A transfer whose recipient
+amount exceeds the recipient network's limit is refused at creation (`PAYOUT_LIMIT_EXCEEDED`), and the
+Send screen warns before review. Seeded at a conservative K10,000 placeholder — confirm the real limits
+with the payout partner.
 
 ## Frontend
 

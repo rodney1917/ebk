@@ -48,11 +48,13 @@ export const COUNTRIES: CountryConfig[] = [
     canSend: false,
     canReceive: true,
     payoutMethods: ['MOBILE_MONEY'],
-    // Prefixes must be confirmed with each payout partner before go-live (number portability etc.).
+    // Prefixes and per-transfer limits must be confirmed with each payout partner before go-live.
+    // K10,000 is a conservative placeholder: published limits seen for inbound remittances vary
+    // between K10,000 and K20,000 per transfer depending on network and provider.
     mobileOperators: [
-      { code: 'MTN_ZM', name: 'MTN MoMo', prefixes: ['96', '76'], active: true },
-      { code: 'AIRTEL_ZM', name: 'Airtel Money', prefixes: ['97', '77'], active: true },
-      { code: 'ZAMTEL_ZM', name: 'Zamtel Kwacha', prefixes: ['95', '75'], active: false },
+      { code: 'MTN_ZM', name: 'MTN MoMo', prefixes: ['96', '76'], active: true, maxPayoutMinor: 1_000_000n },
+      { code: 'AIRTEL_ZM', name: 'Airtel Money', prefixes: ['97', '77'], active: true, maxPayoutMinor: 1_000_000n },
+      { code: 'ZAMTEL_ZM', name: 'Zamtel Kwacha', prefixes: ['95', '75'], active: false, maxPayoutMinor: 1_000_000n },
     ],
   },
 ];

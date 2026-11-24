@@ -144,7 +144,7 @@ export class DemoTransport implements Transport {
       const c: Corridor = {
         id: 'GB-ZM', source: { country: 'GB', currency: 'GBP' }, destination: { country: 'ZM', currency: 'ZMW', name: 'Zambia', dialCode: '260' },
         limits: { min: '10.00', max: '2000.00' }, payoutMethods: ['MOBILE_MONEY'],
-        mobileOperators: ZM.mobileOperators.filter((o) => o.active).map((o) => ({ code: o.code, name: o.name })),
+        mobileOperators: ZM.mobileOperators.filter((o) => o.active).map((o) => ({ code: o.code, name: o.name, maxPayout: o.maxPayoutMinor == null ? null : toDecimalString(o.maxPayoutMinor, 2) })),
       };
       return [c] as T;
     }

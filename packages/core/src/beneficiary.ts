@@ -11,6 +11,14 @@ export interface MobileOperatorConfig {
   /** National significant number prefixes, e.g. ["96", "76"] */
   prefixes: string[];
   active: boolean;
+  /** Maximum a single payout to this network may credit (destination minor units). null = no network limit. */
+  maxPayoutMinor?: bigint | null;
+}
+
+/** Returns an error message if the recipient amount exceeds the network's per-transfer limit. */
+export function payoutLimitError(recipientAmountMinor: bigint, operator: Pick<MobileOperatorConfig, 'name' | 'maxPayoutMinor'>, formatted: (minor: bigint) => string): string | null {
+  if (operator.maxPayoutMinor == null || recipientAmountMinor <= operator.maxPayoutMinor) return null;
+  return `${operator.name} accepts up to ${formatted(operator.maxPayoutMinor)} per transfer. Please send a smaller amount.`;
 }
 
 export interface CountryPhoneConfig {

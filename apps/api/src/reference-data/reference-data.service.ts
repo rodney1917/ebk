@@ -83,7 +83,10 @@ export class ReferenceDataService {
     if (!c || !c.active || !c.canReceive) throw new NotFoundException({ code: 'COUNTRY_NOT_AVAILABLE', message: 'Sending to this country is not available' });
     return {
       phone: { countryCode: c.code, dialCode: c.dialCode, nationalNumberLength: c.nationalNumberLength, trunkPrefix: c.trunkPrefix ?? undefined },
-      operators: c.mobileOperators.map((o) => ({ id: o.id, code: o.code, name: o.name, prefixes: o.prefixes, active: o.active })),
+      operators: c.mobileOperators.map((o) => ({
+        id: o.id, code: o.code, name: o.name, prefixes: o.prefixes, active: o.active,
+        maxPayoutMinor: o.maxPayoutAmount == null ? null : dbToMinor(o.maxPayoutAmount, c.currencyCode),
+      })),
     };
   }
 }
@@ -110,7 +113,7 @@ export class ReferenceDataController {
         destination: { country: c.destinationCountry, currency: c.destinationCurrency, name: dest?.name, dialCode: dest?.dialCode },
         limits: { min: minorToDb(dbToMinor(c.minSendAmount, c.sourceCurrency), c.sourceCurrency), max: minorToDb(dbToMinor(c.maxSendAmount, c.sourceCurrency), c.sourceCurrency) },
         payoutMethods: dest?.payoutMethods ?? [],
-        mobileOperators: dest?.mobileOperators.map((o) => ({ code: o.code, name: o.name })) ?? [],
+        mobileOperators: dest?.mobileOperators.map((o) => ({ code: o.code, name: o.name, maxPayout: o.maxPayoutAmount == null ? null : minorToDb(dbToMinor(o.maxPayoutAmount, c.destinationCurrency), c.destinationCurrency) })) ?? [],
       };
     });
   }

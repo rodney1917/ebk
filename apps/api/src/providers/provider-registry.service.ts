@@ -4,6 +4,7 @@ import { sha256 } from '../common/crypto';
 import { env, isProduction } from '../config/env';
 import { PrismaService } from '../prisma/prisma.service';
 import { AirtelMoneyAdapter } from './airtel-money/airtel-money.adapter';
+import { FlutterwaveTransfersAdapter } from './flutterwave/flutterwave-transfers.adapter';
 import { MtnMomoDisbursementAdapter } from './mtn-momo/mtn-momo-disbursement.adapter';
 import type { CollectionAdapter, PayoutAdapter } from './provider.types';
 import { SandboxCollectionAdapter, SandboxPayoutAdapter } from './sandbox/sandbox.adapters';
@@ -57,6 +58,13 @@ export class ProviderRegistry {
         );
       case 'airtel-money-disbursement':
         return new AirtelMoneyAdapter();
+      case 'flutterwave-transfers':
+        return new FlutterwaveTransfersAdapter({
+          baseUrl: cfg.FLW_BASE_URL,
+          secretKey: cfg.FLW_SECRET_KEY,
+          webhookSecretHash: cfg.FLW_WEBHOOK_SECRET_HASH,
+          operatorMap: (row.config as unknown as { operatorMap?: Record<string, string> } | null)?.operatorMap,
+        });
       default:
         throw new ServiceUnavailableException(`No payout adapter "${row.adapter}"`);
     }

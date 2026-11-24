@@ -256,6 +256,8 @@ model MobileOperator {
   name        String
   prefixes    String[] @default([])
   active      Boolean  @default(true)
+  /// Maximum credit per payout to this network, in the country's currency. NULL = no network limit.
+  maxPayoutAmount Decimal? @map("max_payout_amount") @db.Decimal(20, 4)
 
   country       Country       @relation(fields: [countryCode], references: [code])
   beneficiaries Beneficiary[]

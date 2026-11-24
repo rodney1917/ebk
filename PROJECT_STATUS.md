@@ -51,6 +51,12 @@ _Verified on the VPS: typecheck, migrations, seed, e2e API flow. Still unverifie
 4. `npm run db:migrate && npm run db:seed`, then `npm run test:e2e -w @ebk/api`.
 5. `npm run build -w @ebk/web` and run through the flow against the real API.
 
+## Flutterwave payouts (added 24 Nov)
+
+- 🟡 `flutterwave-transfers` adapter (MTN/Airtel/Zamtel ZMW payouts) — 12 unit tests pass with mocked HTTP; not yet run against Flutterwave test mode.
+- ✅ Per-network payout limits (core + migration `0002` + API enforcement + Send screen warning). Placeholder K10,000 per transfer — **confirm with Flutterwave**.
+- To activate in test mode: set `FLW_SECRET_KEY` (test key) and `FLW_WEBHOOK_SECRET_HASH`, set the same hash and the webhook URL in the Flutterwave dashboard, then `UPDATE payout_providers SET active = true WHERE code = 'FLUTTERWAVE_ZM';`.
+
 ## In progress / partial (⏳)
 
 - Customer profile: data model complete; profile view/edit screens not built.
@@ -66,7 +72,7 @@ _Verified on the VPS: typecheck, migrations, seed, e2e API flow. Still unverifie
 | UK payment collection (cards / open banking) | Choice of authorised UK PSP + sandbox credentials |
 | MTN MoMo sandbox run | MTN developer subscription key + API user/key (free sandbox sign-up) |
 | MTN MoMo Zambia production | MTN Zambia commercial onboarding |
-| Airtel Money adapter | Airtel Zambia merchant onboarding, PIN encryption key |
+| Flutterwave live payouts | KYC/approval on the EBK Flutterwave account, server IP whitelisting, funded ZMW balance, remittance use case approved by Flutterwave |
 | KYC provider | Provider selection (e.g. for UK document + liveness checks) |
 | Live FX rate source | Contracted rate provider / partner rate feed |
 | Fee schedule | Management pricing decision (current values are placeholders) |

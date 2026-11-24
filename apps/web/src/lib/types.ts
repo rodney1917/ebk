@@ -27,7 +27,7 @@ export interface Corridor {
   destination: { country: string; currency: string; name?: string; dialCode?: string };
   limits: { min: string; max: string };
   payoutMethods: string[];
-  mobileOperators: { code: string; name: string }[];
+  mobileOperators: { code: string; name: string; maxPayout: string | null }[];
 }
 
 export interface QuoteDto {

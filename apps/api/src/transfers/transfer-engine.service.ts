@@ -13,7 +13,7 @@
 import { ForbiddenException, Injectable, Logger, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import type { Prisma, Transfer, TransferStatus } from '@prisma/client';
 import {
-  assertTransition, generateReference, InvalidTransitionError, parseAmount, paymentReceivedJournal, payoutCompletedJournal,
+  assertTransition, formatMoney, generateReference, payoutLimitError, InvalidTransitionError, parseAmount, paymentReceivedJournal, payoutCompletedJournal,
   refundCompletedJournal, type TransferAmounts,
 } from '@ebk/core';
 import { dbToMinor } from '../common/amounts';
@@ -110,6 +110,14 @@ export class TransferEngine {
         throw new UnprocessableEntityException({ code: 'BENEFICIARY_MISMATCH', message: 'This recipient cannot receive this transfer' });
       }
 
+      if (b.mobileOperator) {
+        const limitError = payoutLimitError(
+          dbToMinor(quote.recipientAmount, quote.corridor.destinationCurrency),
+          { name: b.mobileOperator.name, maxPayoutMinor: b.mobileOperator.maxPayoutAmount == null ? null : dbToMinor(b.mobileOperator.maxPayoutAmount, quote.corridor.destinationCurrency) },
+          (m) => formatMoney(m, quote.corridor.destinationCurrency),
+        );
+        if (limitError) throw new UnprocessableEntityException({ code: 'PAYOUT_LIMIT_EXCEEDED', message: limitError });
+      }
       const country = await tx.country.findUniqueOrThrow({ where: { code: b.countryCode } });
       const snapshot: BeneficiarySnapshot = {
         fullName: b.fullName,

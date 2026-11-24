@@ -8,6 +8,7 @@ import {
 import { ApiError } from '../../lib/api';
 import { api, IS_DEMO, useAuth } from '../../lib/auth';
 import { formatMoneyDto, formatRate, initials, newIdempotencyKey } from '../../lib/format';
+import { parseAmount } from '@ebk/core';
 import type { Beneficiary, QuoteDto } from '../../lib/types';
 import { BeneficiaryForm } from '../Recipients';
 
@@ -89,6 +90,15 @@ export function SendMoneyPage() {
   });
   const beneficiaries = useQuery({ queryKey: ['beneficiaries'], queryFn: api.beneficiaries.list });
   const recipient = useMemo(() => beneficiaries.data?.find((b) => b.id === recipientId) ?? null, [beneficiaries.data, recipientId]);
+  const corridors = useQuery({ queryKey: ['corridors'], queryFn: api.corridors });
+  // Network per-transfer limit (e.g. MTN MoMo up to K10,000). Checked here for a clear message; the API enforces it too.
+  const limitWarning = useMemo(() => {
+    const op = corridors.data?.[0]?.mobileOperators.find((o) => o.code === recipient?.mobileOperator?.code);
+    if (!op?.maxPayout || !estimate.data) return null;
+    const max = parseAmount(op.maxPayout, 2);
+    if (parseAmount(estimate.data.recipientAmount.amount, 2) <= max) return null;
+    return `${op.name} accepts up to ${formatMoneyDto({ amount: op.maxPayout, currency: 'ZMW' })} per transfer. Go back and send a smaller amount, or choose a different recipient.`;
+  }, [corridors.data, recipient, estimate.data]);
   const countdown = useCountdown(locked?.expiresAt ?? null);
   const verified = me?.profile?.kycStatus === 'VERIFIED';
 
@@ -182,8 +192,9 @@ export function SendMoneyPage() {
               <Button variant="ghost" className="mt-3" icon={<IconPlus />} onClick={() => setAdding(true)}>Add a new recipient</Button>
             </fieldset>
           )}
+          {limitWarning && <Alert tone="warning" className="mt-4">{limitWarning}</Alert>}
           {lockQuote.error && <Alert tone="danger" className="mt-4">{(lockQuote.error as Error).message}</Alert>}
-          <Button className="mt-6" size="lg" block disabled={!recipient} loading={lockQuote.isPending} onClick={() => lockQuote.mutate()}>Review transfer</Button>
+          <Button className="mt-6" size="lg" block disabled={!recipient || !!limitWarning} loading={lockQuote.isPending} onClick={() => lockQuote.mutate()}>Review transfer</Button>
         </Card>
       )}
 

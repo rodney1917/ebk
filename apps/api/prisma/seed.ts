@@ -38,10 +38,11 @@ async function main() {
     };
     await prisma.country.upsert({ where: { code: c.code }, update: data, create: { code: c.code, ...data } });
     for (const o of c.mobileOperators) {
+      const maxPayoutAmount = o.maxPayoutMinor == null ? null : toDecimalString(o.maxPayoutMinor, 2);
       await prisma.mobileOperator.upsert({
         where: { code: o.code },
-        update: { name: o.name, prefixes: o.prefixes, active: o.active },
-        create: { code: o.code, name: o.name, prefixes: o.prefixes, active: o.active, countryCode: c.code },
+        update: { name: o.name, prefixes: o.prefixes, active: o.active, maxPayoutAmount },
+        create: { code: o.code, name: o.name, prefixes: o.prefixes, active: o.active, countryCode: c.code, maxPayoutAmount },
       });
     }
   }
@@ -76,6 +77,18 @@ async function main() {
       code: 'MTN_MOMO_ZM', name: 'MTN MoMo (Disbursement API)', adapter: 'mtn-momo-disbursement', environment: 'SANDBOX',
       countryCode: 'ZM', payoutMethod: 'MOBILE_MONEY', mobileOperatorCodes: ['MTN_ZM'], supportedCurrencies: ['ZMW'],
       config: { sandboxCurrencyOverride: 'EUR' }, credentialsRef: 'MTN_MOMO_DISBURSEMENT_*', active: false, priority: 10,
+    },
+  });
+  // Flutterwave: payouts to MTN, Airtel and Zamtel. Inactive until FLW_* keys are configured and
+  // it is switched on deliberately (UPDATE payout_providers SET active = true WHERE code = 'FLUTTERWAVE_ZM').
+  await prisma.payoutProvider.upsert({
+    where: { code: 'FLUTTERWAVE_ZM' },
+    update: {},
+    create: {
+      code: 'FLUTTERWAVE_ZM', name: 'Flutterwave Transfers', adapter: 'flutterwave-transfers', environment: 'SANDBOX',
+      countryCode: 'ZM', payoutMethod: 'MOBILE_MONEY', mobileOperatorCodes: ['MTN_ZM', 'AIRTEL_ZM', 'ZAMTEL_ZM'], supportedCurrencies: ['ZMW'],
+      config: { operatorMap: { MTN_ZM: 'MTN', AIRTEL_ZM: 'AIRTEL', ZAMTEL_ZM: 'ZAMTEL' } }, credentialsRef: 'FLW_SECRET_KEY / FLW_WEBHOOK_SECRET_HASH',
+      active: false, priority: 20,
     },
   });
   await prisma.payoutProvider.upsert({

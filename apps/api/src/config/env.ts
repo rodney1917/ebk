@@ -35,6 +35,12 @@ const EnvSchema = z
     MTN_MOMO_DISBURSEMENT_API_KEY: z.string().optional(),
     MTN_MOMO_CALLBACK_SECRET: z.string().optional(),
 
+    /** Flutterwave v3. Test keys start FLWSECK_TEST- and never move real money. */
+    FLW_BASE_URL: z.string().url().default('https://api.flutterwave.com'),
+    FLW_SECRET_KEY: z.string().optional(),
+    /** The "Secret hash" set in Flutterwave dashboard → Settings → Webhooks (sent back as verif-hash). */
+    FLW_WEBHOOK_SECRET_HASH: z.string().min(16).optional(),
+
     COMPLIANCE_REVIEW_THRESHOLD_GBP: z.string().regex(/^\d+(\.\d{1,2})?$/).default('1000.00'),
   })
   .superRefine((env, ctx) => {
@@ -43,6 +49,12 @@ const EnvSchema = z
     }
     if (env.SANDBOX_PROVIDERS_ENABLED && !env.SANDBOX_WEBHOOK_SECRET) {
       ctx.addIssue({ code: 'custom', path: ['SANDBOX_WEBHOOK_SECRET'], message: 'Required when sandbox providers are enabled' });
+    }
+    if (env.NODE_ENV === 'production' && env.FLW_SECRET_KEY?.startsWith('FLWSECK_TEST')) {
+      ctx.addIssue({ code: 'custom', path: ['FLW_SECRET_KEY'], message: 'Production cannot use a Flutterwave test key' });
+    }
+    if (env.FLW_SECRET_KEY && !env.FLW_WEBHOOK_SECRET_HASH) {
+      ctx.addIssue({ code: 'custom', path: ['FLW_WEBHOOK_SECRET_HASH'], message: 'Required when FLW_SECRET_KEY is set (Flutterwave dashboard → Settings → Webhooks)' });
     }
     if (env.NODE_ENV === 'production' && env.MTN_MOMO_TARGET_ENVIRONMENT === 'sandbox') {
       ctx.addIssue({ code: 'custom', path: ['MTN_MOMO_TARGET_ENVIRONMENT'], message: 'Production cannot target the MTN sandbox' });
@@ -54,7 +66,9 @@ export type Env = z.infer<typeof EnvSchema>;
 let cached: Env | null = null;
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
-  const parsed = EnvSchema.safeParse(source);
+  // Empty values in .env (e.g. `FLW_SECRET_KEY=`) mean "not set".
+  const cleaned = Object.fromEntries(Object.entries(source).filter(([, v]) => v !== ''));
+  const parsed = EnvSchema.safeParse(cleaned);
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
     throw new Error(`Invalid EBK configuration:\n${issues}`);

@@ -7,7 +7,7 @@ import {
   canTransition, assertTransition, InvalidTransitionError, TRANSITIONS, TRANSFER_STATUSES, FUNDS_COLLECTED_STATUSES,
   paymentReceivedJournal, payoutCompletedJournal, refundCompletedJournal, reversalJournal, assertBalanced, accountBalance, accounts, LedgerError,
   generateReference, isValidReference, normaliseReference,
-  normaliseMsisdn, validateMobileMoneyNumber, validateRecipientName, maskMsisdn,
+  normaliseMsisdn, validateMobileMoneyNumber, validateRecipientName, maskMsisdn, payoutLimitError,
   COUNTRIES, CORRIDORS, DEFAULT_FEE_RULES,
 } from '../src/index.js';
 
@@ -209,6 +209,13 @@ describe('beneficiaries', () => {
     assert.equal(validateRecipientName("Chanda O'Neil-Phiri"), null);
     assert.notEqual(validateRecipientName('Mwila'), null);
     assert.notEqual(validateRecipientName('<script> x'), null);
+  });
+  test('network payout limits', () => {
+    const mtn = ZM.mobileOperators.find((o) => o.code === 'MTN_ZM')!;
+    const fmt = (m: bigint) => formatMoney(m, 'ZMW');
+    assert.equal(payoutLimitError(1_000_000n, mtn, fmt), null); // exactly K10,000 allowed
+    assert.match(payoutLimitError(1_000_001n, mtn, fmt)!, /MTN MoMo accepts up to K10,000.00/);
+    assert.equal(payoutLimitError(99_999_999n, { name: 'X', maxPayoutMinor: null }, fmt), null);
   });
   test('masking', () => {
     assert.equal(maskMsisdn('260961234567', '260'), '+260 96 *** 4567');
